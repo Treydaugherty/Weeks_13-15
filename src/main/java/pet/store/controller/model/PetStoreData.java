@@ -12,13 +12,13 @@ import pet.store.entity.PetStore;
 @Data
 @NoArgsConstructor
 public class PetStoreData {
-	private long petStoreId;
+	private Long petStoreId;
 	private String petStoreName;
 	private String petStoreAddress;
 	private String petStoreCity;
 	private String petStoreState;
-	private long petStoreZip;
-	private long petStorePhone;
+	private String petStoreZip;
+	private String petStorePhone;
 	private Set<PetStoreCustomer> customers = new HashSet<>();
 	private Set<PetStoreEmployee> employees = new HashSet<>();
 	
