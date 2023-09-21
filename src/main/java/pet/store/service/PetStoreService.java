@@ -5,15 +5,17 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-import org.hibernate.mapping.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import pet.store.controller.model.PetStoreCustomer;
 import pet.store.controller.model.PetStoreData;
 import pet.store.controller.model.PetStoreEmployee;
+import pet.store.dao.CustomerDao;
 import pet.store.dao.EmployeeDao;
 import pet.store.dao.PetStoreDao;
+import pet.store.entity.Customer;
 import pet.store.entity.Employee;
 import pet.store.entity.PetStore;
 
@@ -24,6 +26,9 @@ public class PetStoreService {
 	
 	@Autowired
 	private EmployeeDao employeeDao;
+	
+	@Autowired
+	private CustomerDao customerDao;
 
 	@Transactional(readOnly = false)
 	public PetStoreData savePetStore(PetStoreData petStoreData) {
@@ -73,7 +78,6 @@ public class PetStoreService {
 		Employee dbEmployee = employeeDao.save(employee);
 			return new PetStoreEmployee(dbEmployee);
 	}
-		
 
 	private void copyEmployeeFields(Employee employee, PetStoreEmployee petStoreEmployee) {
 		employee.setEmployeeFirstname(petStoreEmployee.getEmployeeFirstName());
@@ -118,9 +122,48 @@ public class PetStoreService {
 		
 		return new PetStoreData(findStoreById(petStoreId));
 	}
+	@Transactional(readOnly = false)
+	public void deletePetStoreById(Long petStoreId) {
+		PetStore petStore = findStoreById(petStoreId);
+		petStoreDao.delete(petStore);
+	}
 
-//	public static Map deletePetStoreById(Long petStoreId) {
-//		
-//		return new Map<"message","deletion successful">;
-//	}
+	@Transactional(readOnly = false)
+	public PetStoreCustomer saveCustomer(Long petStoreId, 
+			PetStoreCustomer petStoreCustomer) {
+		PetStore petStore = findStoreById(petStoreId);
+		Long customerId = petStoreCustomer.getCustomerId();
+		Customer customer = findOrCreateCustomer(petStoreId, customerId);
+		
+		copyCustomerFields (customer, petStoreCustomer);
+		customer.getPetStores().add(petStore);
+		petStore.getCustomers().add(customer);
+		
+		Customer dbCustomer = customerDao.save(customer);
+			return new PetStoreCustomer(dbCustomer);
+	}
+	
+	private void copyCustomerFields(Customer customer, PetStoreCustomer petStoreCustomer) {
+		customer.setCustomerFirstName(petStoreCustomer.getCustomerFirstName());
+		customer.setCustomerLastName(petStoreCustomer.getCustomerLastName());
+		customer.setCustomerEmail(petStoreCustomer.getCustomerEmail());
+	}
+	
+	private Customer findOrCreateCustomer(Long petStoreId, Long customerId) {
+		if (Objects.isNull(customerId)){
+			return new Customer();
+		}else {
+			return findCustomerById(petStoreId, customerId);
+		}
+}
+
+	private Customer findCustomerById(Long petStoreId, Long customerId) {
+		Customer customer = customerDao.findById(customerId).orElseThrow(() ->
+			new NoSuchElementException("Customer with ID= " + customerId + " does not exist."));
+		if (Objects.equals(customerId, petStoreId)) {
+			return customer;
+		} else  {
+		throw new IllegalArgumentException("Customer ID and PetStore Id don't match.");
+		}
+	}
 }

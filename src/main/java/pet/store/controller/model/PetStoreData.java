@@ -38,9 +38,7 @@ public class PetStoreData {
 	for(Employee employee : petStore.getEmployees()) {
 		employees.add(new PetStoreEmployee(employee));
 		
-//	PetStoreCustomer(PetStore petStore){
-//		petStoreId = petStore.getPetStoreId();
-//	}
+
 	}
 	}
 }
